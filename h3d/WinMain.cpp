@@ -78,17 +78,37 @@ int CALLBACK WinMain(
 	);
 	ShowWindow(hWnd, SW_SHOW);
 #endif
-	Window wnd(800, 300, "Donkey Fart Box");
-	//message pump
-	MSG msg;
-	BOOL gResult;
-	while (gResult = GetMessage(&msg, nullptr, 0, 0) > 0)
-	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-	if (gResult == -1)
-		return -1;
+	try {
+
+		Window wnd(800, 300, "Donkey Fart Box");
+		//message pump
+		MSG msg;
+		BOOL gResult;
+		while (gResult = GetMessage(&msg, nullptr, 0, 0) > 0)
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+			if (wnd.kbd.KeyIsPressed(VK_MENU))
+			{
+				MessageBox(nullptr, "SomethingHappen!", "Space KeyPressed!",MB_OK);
+			}
+		}
+		if (gResult == -1)
+			return -1;
 
 		return msg.wParam;
+	}
+	catch (const MyException& e)
+	{
+		MessageBox(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONEXCLAMATION);
+	}
+	catch (const std::exception& e)
+	{
+		MessageBox(nullptr,e.what(),"Standard Exceprion",MB_OK| MB_ICONEXCLAMATION);
+	}
+	catch (...)
+	{
+		MessageBox(nullptr, "No details available", "Unkonwn Exception", MB_OK | MB_ICONEXCLAMATION);
+	}
+	return -1;
 }
