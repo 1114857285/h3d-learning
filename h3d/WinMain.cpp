@@ -11,21 +11,20 @@ int CALLBACK WinMain(
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
-	try 
-	{
-		return App{}.Go();
-	}
-	catch (const MyException& e)
-	{
-		MessageBox(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONEXCLAMATION);
-	}
-	catch (const std::exception& e)
-	{
-		MessageBox(nullptr,e.what(),"Standard Exceprion",MB_OK| MB_ICONEXCLAMATION);
-	}
-	catch (...)
-	{
-		MessageBox(nullptr, "No details available", "Unkonwn Exception", MB_OK | MB_ICONEXCLAMATION);
-	}
-	return -1;
+    try {
+        return App{}.Go();
+    }
+    catch (const Graphics::HrException& e) {
+        MessageBox(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONERROR);
+    }
+    catch (const MyException& e) {
+        MessageBox(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONERROR);
+    }
+    catch (const std::exception& e) {
+        MessageBox(nullptr, e.what(), "Standard Exception", MB_OK | MB_ICONERROR);
+    }
+    catch (...) {
+        MessageBox(nullptr, "Unknown Error", "Unknown Exception", MB_OK | MB_ICONERROR);
+    }
+    return -1;
 }

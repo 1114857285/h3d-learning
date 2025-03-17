@@ -8,6 +8,7 @@ App::App()
 
 int App::Go()
 {
+
 	while (true)
 	{
 		// process all messages pending, but to not block for new messages
@@ -18,6 +19,7 @@ int App::Go()
 		}
 		// execute the game logic
 		DoFrame();
+
 	}
 
 }

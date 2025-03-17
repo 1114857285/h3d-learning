@@ -2,79 +2,128 @@
 #include <stdio.h>
 #include <string.h>
 
+#pragma comment(lib, "dxguid.lib") // 必须链接此库
+
+//--------------------------------------------------
+// DirectX 专用错误处理工具
+//--------------------------------------------------
+
 // ANSI 版本：返回格式化的 HRESULT 字符串
-const CHAR* WINAPI DXGetErrorStringA(_In_ HRESULT hr)
-{
-    // 使用静态缓冲区存储字符串（非线程安全）
-    static CHAR s_str[64] = { 0 };
-    sprintf_s(s_str, sizeof(s_str), "HRESULT 0x%08X", (unsigned int)hr);
-    return s_str;
+const CHAR* WINAPI DXGetErrorStringA(_In_ HRESULT hr) {
+    // 使用线程局部存储避免多线程冲突
+    static __declspec(thread) CHAR s_str[512] = { 0 };
+    const CHAR* pMsg = nullptr;
+
+    // 先调用函数写入 s_str
+    DXGetErrorDescriptionA(hr, s_str, sizeof(s_str));
+    // 检查缓冲区是否有写入内容
+    if (s_str[0] != '\0') {
+        pMsg = s_str;
+    }
+    else {
+        sprintf_s(s_str, sizeof(s_str), "HRESULT 0x%08X", static_cast<unsigned int>(hr));
+        pMsg = s_str;
+    }
+    return pMsg;
 }
 
 // Unicode 版本：返回格式化的 HRESULT 字符串
-const WCHAR* WINAPI DXGetErrorStringW(_In_ HRESULT hr)
-{
-    static WCHAR s_wstr[64] = { 0 };
-    swprintf_s(s_wstr, sizeof(s_wstr) / sizeof(WCHAR), L"HRESULT 0x%08X", (unsigned int)hr);
-    return s_wstr;
+const WCHAR* WINAPI DXGetErrorStringW(_In_ HRESULT hr) {
+    static __declspec(thread) WCHAR s_wstr[512] = { 0 };
+    const WCHAR* pMsg = nullptr;
+
+    DXGetErrorDescriptionW(hr, s_wstr, sizeof(s_wstr) / sizeof(WCHAR));
+    if (s_wstr[0] != L'\0') {
+        pMsg = s_wstr;
+    }
+    else {
+        swprintf_s(s_wstr, sizeof(s_wstr) / sizeof(WCHAR), L"HRESULT 0x%08X", static_cast<unsigned int>(hr));
+        pMsg = s_wstr;
+    }
+    return pMsg;
 }
 
-// ANSI 版本：利用 FormatMessageA 将 hr 转换为错误描述，并写入 desc 缓冲区
-void WINAPI DXGetErrorDescriptionA(_In_ HRESULT hr, _Out_cap_(count) CHAR* desc, _In_ size_t count)
-{
-    if (!desc || count == 0)
-        return;
+//--------------------------------------------------
+// 核心错误描述获取函数（支持 DirectX 专用错误码）
+//--------------------------------------------------
 
+// ANSI 版本：获取详细的错误描述
+void WINAPI DXGetErrorDescriptionA(_In_ HRESULT hr, _Out_cap_(count) CHAR* desc, _In_ size_t count) {
+    if (!desc || count == 0) return;
+
+    // 清空 desc
     desc[0] = '\0';
 
-    CHAR* msgBuf = NULL;
-    DWORD msgLen = FormatMessageA(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,   // 使用系统错误消息
-        hr,
-        0,      // 默认语言
-        (LPSTR)&msgBuf,
-        0,
-        NULL
-    );
+    // 1. 尝试获取 DirectX 专用错误描述
+    HMODULE hDxgiDebug = LoadLibraryExW(L"dxgidebug.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    if (hDxgiDebug) {
+        DWORD flags = FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS;
+        CHAR* pMsgBuf = nullptr;
+        if (FormatMessageA(
+            flags,
+            hDxgiDebug,
+            hr,
+            0,
+            reinterpret_cast<LPSTR>(&pMsgBuf),
+            0,
+            nullptr
+        ) && pMsgBuf)
+        {
+            strncpy_s(desc, count, pMsgBuf, _TRUNCATE);
+            LocalFree(pMsgBuf);
+            FreeLibrary(hDxgiDebug);
+            return;
+        }
+        FreeLibrary(hDxgiDebug);
+    }
 
-    if (msgLen > 0 && msgBuf)
-    {
-        strncpy_s(desc, count, msgBuf, _TRUNCATE);
-        LocalFree(msgBuf);
-    }
-    else
-    {
-        strncpy_s(desc, count, "Unknown error", _TRUNCATE);
-    }
+    // 2. 回退到系统错误描述
+    FormatMessageA(
+        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr,
+        hr,
+        0,
+        desc,
+        static_cast<DWORD>(count),
+        nullptr
+    );
 }
 
-// Unicode 版本：利用 FormatMessageW 将 hr 转换为错误描述，并写入 desc 缓冲区
-void WINAPI DXGetErrorDescriptionW(_In_ HRESULT hr, _Out_cap_(count) WCHAR* desc, _In_ size_t count)
-{
-    if (!desc || count == 0)
-        return;
+// Unicode 版本：获取详细的错误描述
+void WINAPI DXGetErrorDescriptionW(_In_ HRESULT hr, _Out_cap_(count) WCHAR* desc, _In_ size_t count) {
+    if (!desc || count == 0) return;
 
     desc[0] = L'\0';
 
-    WCHAR* msgBuf = NULL;
-    DWORD msgLen = FormatMessageW(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,
-        hr,
-        0,      // 默认语言
-        (LPWSTR)&msgBuf,
-        0,
-        NULL
-    );
+    HMODULE hDxgiDebug = LoadLibraryExW(L"dxgidebug.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    if (hDxgiDebug) {
+        DWORD flags = FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS;
+        WCHAR* pMsgBuf = nullptr;
+        if (FormatMessageW(
+            flags,
+            hDxgiDebug,
+            hr,
+            0,
+            reinterpret_cast<LPWSTR>(&pMsgBuf),
+            0,
+            nullptr
+        ) && pMsgBuf)
+        {
+            wcsncpy_s(desc, count, pMsgBuf, _TRUNCATE);
+            LocalFree(pMsgBuf);
+            FreeLibrary(hDxgiDebug);
+            return;
+        }
+        FreeLibrary(hDxgiDebug);
+    }
 
-    if (msgLen > 0 && msgBuf)
-    {
-        wcsncpy_s(desc, count, msgBuf, _TRUNCATE);
-        LocalFree(msgBuf);
-    }
-    else
-    {
-        wcsncpy_s(desc, count, L"Unknown error", _TRUNCATE);
-    }
+    FormatMessageW(
+        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr,
+        hr,
+        0,
+        desc,
+        static_cast<DWORD>(count),
+        nullptr
+    );
 }

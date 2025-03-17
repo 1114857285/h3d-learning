@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <Windows.h>
+#include <dxgidebug.h> // DirectX 调试头文件
 
     // ANSI 版本函数声明
     const CHAR* WINAPI DXGetErrorStringA(_In_ HRESULT hr);
