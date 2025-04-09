@@ -93,17 +93,31 @@ void Graphics::DrawTestTriangle()
 	HRESULT hr;
 	struct  Vertex
 	{
-		float x;
-		float y;
+		struct 
+		{
+			float x;
+			float y;
+		}pos;
+		struct
+		{
+			unsigned char r;
+			unsigned char g;
+			unsigned char b;
+			unsigned char a;
+		}color;
+
 	};
 
-	const Vertex vertices[] =
+	Vertex vertices[] =
 	{
-		{0.0f,0.5f},
-		{0.5f,-0.5f},
-		{-0.5f,-0.5f},
+		{0.0f,0.5f,255,0,0,0},
+		{0.5f,-0.5f,0,255,0,0},
+		{-0.5f,-0.5f,0,0,255,0},
+		{-0.3f,0.3f,0,255,0,0},
+		{0.3f,0.3f,0,0,255,0},
+		{0.0f,-0.8f,255,0,0,0},
 	};
-
+	vertices[0].color.g = 255;
 	wrl::ComPtr<ID3D11Buffer> pVertexBuffer;
 	D3D11_BUFFER_DESC bd = {};
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -115,39 +129,77 @@ void Graphics::DrawTestTriangle()
 	D3D11_SUBRESOURCE_DATA sd = {};
 	sd.pSysMem = vertices;
 	GFX_THROW_INFO(pDevice->CreateBuffer(&bd, &sd, &pVertexBuffer));
+
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0u;
-	pContext->IAGetVertexBuffers(0u,1u,pVertexBuffer.GetAddressOf(), &stride, &offset);
+	pContext->IASetVertexBuffers(0u,1u,pVertexBuffer.GetAddressOf(), &stride, &offset);
 
-	wrl::ComPtr<ID3D11InputLayout> pInputLayout;
+	const unsigned short indices[] =
+	{
+		0,1,2,
+		0,2,3,
+		0,4,1,
+		2,1,5,
+	};
+	wrl::ComPtr<ID3D11Buffer> pIndexBuffer;
+	D3D11_BUFFER_DESC ibd = {};
+	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	ibd.Usage = D3D11_USAGE_DEFAULT;
+	ibd.CPUAccessFlags = 0u;
+	ibd.MiscFlags = 0u;
+	ibd.ByteWidth = sizeof(indices);
+	ibd.StructureByteStride = sizeof(unsigned short);
+	D3D11_SUBRESOURCE_DATA isd = {};
+	isd.pSysMem = indices;
+	GFX_THROW_INFO(pDevice->CreateBuffer(&ibd, &isd, &pIndexBuffer));
 
-	wrl::ComPtr<ID3D11VertexShader> pVertexShader;
-	wrl::ComPtr<ID3DBlob> pBlob;
-	GFX_THROW_INFO(D3DReadFileToBlob(L"VertexShader.cso", &pBlob));
-	GFX_THROW_INFO(pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader));
 
-	pContext->VSSetShader(pVertexShader.Get(), nullptr, 0u);
+	pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u);
+
 
 	wrl::ComPtr<ID3D11PixelShader> pPixelShader;
+	wrl::ComPtr<ID3DBlob> pBlob;
 	GFX_THROW_INFO(D3DReadFileToBlob(L"PixelShader.cso", &pBlob));
 	GFX_THROW_INFO(pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader));
 
 	pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
 
+	wrl::ComPtr<ID3D11VertexShader> pVertexShader;
+
+	GFX_THROW_INFO(D3DReadFileToBlob(L"VertexShader.cso", &pBlob));
+	GFX_THROW_INFO(pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader));
+//
+	pContext->VSSetShader(pVertexShader.Get(), nullptr, 0u);
+	//
+	wrl::ComPtr<ID3D11InputLayout> pInputLayout;
+	const D3D11_INPUT_ELEMENT_DESC ied[] =
+	{
+		{"Position",0,DXGI_FORMAT_R32G32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0},
+		{"Color",0,DXGI_FORMAT_R8G8B8A8_UNORM,0,8,D3D11_INPUT_PER_VERTEX_DATA,0},
+	};
+	GFX_THROW_INFO(pDevice->CreateInputLayout(
+		ied, (UINT)std::size(ied),
+		pBlob->GetBufferPointer(),
+		pBlob->GetBufferSize(),
+		&pInputLayout
+	));
+
+	pContext->IASetInputLayout(pInputLayout.Get());
+
 	pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), nullptr);
 
-	pContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	D3D11_VIEWPORT vp;
 	vp.Width = 800;
-	vp.Height = 800;
-	vp.MinDepth = 1;
+	vp.Height = 600;
+	vp.MinDepth = 0;
 	vp.MaxDepth = 1;
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 	pContext->RSSetViewports(1u, &vp);
 
-	GFX_THROW_INFO_ONLY(pContext->Draw((UINT)std::size(vertices), 0u));
+	GFX_THROW_INFO_ONLY(pContext->DrawIndexed((UINT)std::size(indices),0, 0u));
 }
 
 Graphics::HrException::HrException(int line, const char* file, HRESULT hr,std::vector<std::string> infoMsgs) noexcept
