@@ -3,8 +3,13 @@
 #include <windows.h>
 #include "Ndxerr.h"
 #include <d3dcompiler.h>
+#include <cmath>
+#include <DirectXMath.h>
 
 namespace wrl = Microsoft::WRL;
+namespace dx = DirectX;
+
+
 #pragma comment(lib,"d3d11.lib")
 #pragma comment(lib, "d3dcompiler.lib")  // È·±£Á´½Ó
 
@@ -87,9 +92,14 @@ void Graphics::ClearBuffer(float red, float green, float blue) noexcept
 	pContext->ClearRenderTargetView(pTarget.Get(), color);
 }
 
-void Graphics::DrawTestTriangle()
+void Graphics::DrawTestTriangle(float angle,float x,float y)
 {
 	namespace wrl = Microsoft::WRL;
+
+	//dx::XMVECTOR v = dx::XMVectorSet(3.0f, 3.0f, 0.0f, 0.0f);
+	//auto result = dx::XMVector3Transform(v, dx::XMMatrixScaling(1.5f, 0.0f, 0.0f));
+	//auto x = dx::XMVectorGetX(result);
+
 	HRESULT hr;
 	struct  Vertex
 	{
@@ -156,6 +166,46 @@ void Graphics::DrawTestTriangle()
 
 	pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u);
 
+	//const buffer
+	struct  ConstantBuffer
+	{
+		dx::XMMATRIX transformation;
+		/*
+		struct
+		{
+			float element[4][4];
+		}transformation;*/
+	};
+	const ConstantBuffer cb =
+	{
+		{
+			dx::XMMatrixTranspose(
+				dx::XMMatrixRotationZ(angle)*
+				dx::XMMatrixScaling(3.0f / 4.0f,1.0f,1.0f)*
+				dx::XMMatrixTranslation(x,y,0.0f)
+			)
+			/*
+			(3.0f/4.0f)*std::cos(angle),std::sin(angle), 0.0f,	0.0f,
+			(3.0f / 4.0f) * -std::sin(angle),std::cos(angle),0.0f,	0.0f,
+			0.0f, 0.0f,						 1.0f,	0.0f,
+			0.0f,0.0f,						 0.0f,  1.0f
+			*/
+		}
+	};
+	wrl::ComPtr<ID3D11Buffer> pConstantBuffer;
+	D3D11_BUFFER_DESC cbd = {};
+	cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbd.Usage = D3D11_USAGE_DYNAMIC;
+	cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbd.MiscFlags = 0u;
+	cbd.ByteWidth = sizeof(cb);
+	cbd.StructureByteStride = 0u;
+	D3D11_SUBRESOURCE_DATA csd = {};
+	csd.pSysMem = &cb;
+	GFX_THROW_INFO(pDevice->CreateBuffer(&cbd, &csd, &pConstantBuffer));
+
+	//
+	pContext->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf());
 
 	wrl::ComPtr<ID3D11PixelShader> pPixelShader;
 	wrl::ComPtr<ID3DBlob> pBlob;
@@ -200,6 +250,11 @@ void Graphics::DrawTestTriangle()
 	pContext->RSSetViewports(1u, &vp);
 
 	GFX_THROW_INFO_ONLY(pContext->DrawIndexed((UINT)std::size(indices),0, 0u));
+}
+
+void Graphics::DrawIndexed(UINT count) noexcept(!_DEBUG)
+{
+	GFX_THROW_INFO_ONLY(pContext->DrawIndexed(count, 0u, 0u));
 }
 
 Graphics::HrException::HrException(int line, const char* file, HRESULT hr,std::vector<std::string> infoMsgs) noexcept

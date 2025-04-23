@@ -30,6 +30,9 @@ void App::DoFrame()
 	const float a = cos(timer.Peek()) / 2.0f + 0.5f;
 	const float b = sin(timer.Peek()) / 2.0f + 0.5f;
 	wnd.Gfx().ClearBuffer(c, a, b);
-	wnd.Gfx().DrawTestTriangle();
+	wnd.Gfx().DrawTestTriangle(timer.Peek(),
+		wnd.mouse.GetPosX() / 400.f - 1.0f,
+		-wnd.mouse.GetPosY() / 300.f + 1.0f
+	);
 	wnd.Gfx().EndFrame();
 }

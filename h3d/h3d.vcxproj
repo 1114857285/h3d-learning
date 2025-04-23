@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -138,13 +138,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="Bindable.cpp" />
+    <ClCompile Include="Drawable.cpp" />
     <ClCompile Include="DxgiInfoManager.cpp" />
     <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="IndexBuffer.cpp" />
+    <ClCompile Include="InputLayout.cpp" />
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="MyException.cpp" />
     <ClCompile Include="MyTimer.cpp" />
     <ClCompile Include="Ndxerr.cpp" />
+    <ClCompile Include="Topology.cpp" />
+    <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="Window.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -154,9 +160,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
+    <ClInclude Include="Bindable.h" />
+    <ClInclude Include="ConstantBuffers.h" />
+    <ClInclude Include="Drawable.h" />
     <ClInclude Include="DxgiInfoManager.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="GraphicsThrowMacros.h" />
+    <ClInclude Include="IndexBuffer.h" />
+    <ClInclude Include="InputLayout.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="MyException.h" />
@@ -164,6 +175,8 @@
     <ClInclude Include="MyWin.h" />
     <ClInclude Include="Ndxerr.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Topology.h" />
+    <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="Window.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
