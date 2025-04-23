@@ -75,6 +75,9 @@
     <ClCompile Include="Bindable.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Drawable.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.h">
@@ -130,6 +133,12 @@
     </ClInclude>
     <ClInclude Include="VertexBuffer.h">
       <Filter>头文件\Bindable</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstantBuffers.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Drawable.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
