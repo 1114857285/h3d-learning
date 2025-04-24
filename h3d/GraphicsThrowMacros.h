@@ -43,3 +43,11 @@
 #else
 #define GFX_THROW_INFO(hrcall) GFX_THROW_NOINFO(hrcall)
 #endif
+
+
+#define GFX_THROW_NOINFO(hrcall) { \
+    HRESULT hr; \
+    if (FAILED(hr = (hrcall))) { \
+        throw Graphics::HrException(__LINE__, __FILE__, hr); \
+    } \
+}

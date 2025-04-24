@@ -2,6 +2,7 @@
 #include <sstream>
 #include <windows.h>
 #include "Ndxerr.h"
+#include "wantSee.h"
 #include <d3dcompiler.h>
 #include <cmath>
 #include <DirectXMath.h>
@@ -73,6 +74,31 @@ Graphics::Graphics(HWND hWnd)
 	//bind depth state
 	pContext->OMSetDepthStencilState(pDSState.Get(), 1u);
 
+	//creat depth stensil texture
+	wrl::ComPtr<ID3D11Texture2D> pDepthStencil;
+	D3D11_TEXTURE2D_DESC descDepth = {};
+	descDepth.Width = 800u;
+	descDepth.Height = 600u;
+	descDepth.MipLevels = 1u;
+	descDepth.ArraySize = 1u;
+	descDepth.Format = DXGI_FORMAT_D32_FLOAT;
+	descDepth.SampleDesc.Count = 1u;
+	descDepth.SampleDesc.Quality = 0u;
+	descDepth.Usage = D3D11_USAGE_DEFAULT;
+	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	GFX_THROW_INFO(pDevice->CreateTexture2D(&descDepth, nullptr, &pDepthStencil));
+
+	//create view of depth stensil texture
+	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
+	descDSV.Format = DXGI_FORMAT_D32_FLOAT;
+	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	descDSV.Texture2D.MipSlice = 0u;
+	GFX_THROW_INFO(pDevice->CreateDepthStencilView(
+		pDepthStencil.Get(), &descDSV, &pDSV
+	));
+
+	//bind depth stensil view to OM
+	pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), pDSV.Get());
 }
 
 
@@ -101,6 +127,7 @@ void Graphics::ClearBuffer(float red, float green, float blue) noexcept
 {
 	const float color[] = { red,green,blue,1.0f };
 	pContext->ClearRenderTargetView(pTarget.Get(), color);
+	pContext->ClearDepthStencilView(pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 }
 
 void Graphics::DrawTestTriangle(float angle,float x,float y)
@@ -158,7 +185,7 @@ void Graphics::DrawTestTriangle(float angle,float x,float y)
 		4,5,7, 4,7,6,
 		0,4,2, 2,4,6,
 		0,1,4, 1,5,4
-	};
+	};	
 	wrl::ComPtr<ID3D11Buffer> pIndexBuffer;
 	D3D11_BUFFER_DESC ibd = {};
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -173,6 +200,49 @@ void Graphics::DrawTestTriangle(float angle,float x,float y)
 
 
 	pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u);
+#if 1
+
+
+	if (wantSee)
+	{
+		const unsigned short edges[] = {
+	0,1, 1,3, 3,2, 2,0, // 前面
+	4,5, 5,7, 7,6, 6,4, // 后面
+	0,4, 1,5, 2,6, 3,7  // 连接线
+		};
+
+		// 创建线框索引缓冲区
+		wrl::ComPtr<ID3D11Buffer> pEdgeIndexBuffer;
+		D3D11_BUFFER_DESC eibd = {};
+		eibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		eibd.Usage = D3D11_USAGE_DEFAULT;
+		eibd.ByteWidth = sizeof(edges); // edges是你的边索引数组
+		eibd.StructureByteStride = sizeof(unsigned short);
+
+		D3D11_SUBRESOURCE_DATA eisd = {};
+		eisd.pSysMem = edges;
+
+		GFX_THROW_INFO(pDevice->CreateBuffer(&eibd, &eisd, &pEdgeIndexBuffer));
+		// 创建线框光栅化状态（在初始化时完成）
+		wrl::ComPtr<ID3D11RasterizerState> pWireframeRS;
+		D3D11_RASTERIZER_DESC wfDesc = {};
+		wfDesc.FillMode = D3D11_FILL_WIREFRAME; // 关键设置！
+		wfDesc.CullMode = D3D11_CULL_NONE;
+		wfDesc.DepthClipEnable = true;
+
+		GFX_THROW_INFO(pDevice->CreateRasterizerState(&wfDesc, &pWireframeRS));
+
+		// 绘制前绑定状态
+		pContext->RSSetState(pWireframeRS.Get());
+
+		// 使用DrawIndexed绘制线段
+		pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST); // 关键！
+		pContext->DrawIndexed((UINT)std::size(edges), 0, 0);
+ }
+	
+#endif // wantseebox
+
+	
 
 	//const buffer
 	struct  ConstantBuffer
@@ -281,7 +351,7 @@ void Graphics::DrawTestTriangle(float angle,float x,float y)
 
 	pContext->IASetInputLayout(pInputLayout.Get());
 
-	pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), nullptr);
+	//pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), nullptr);
 
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -297,7 +367,7 @@ void Graphics::DrawTestTriangle(float angle,float x,float y)
 	GFX_THROW_INFO_ONLY(pContext->DrawIndexed((UINT)std::size(indices),0, 0u));
 }
 
-void Graphics::DrawIndexed(UINT count) noexcept(!_DEBUG)
+void Graphics::DrawIndexed(UINT count) noexcept(NDEBUG)
 {
 	GFX_THROW_INFO_ONLY(pContext->DrawIndexed(count, 0u, 0u));
 }

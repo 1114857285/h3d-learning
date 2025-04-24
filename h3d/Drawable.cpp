@@ -4,7 +4,7 @@
 #include <cassert>
 #include <typeinfo>
 
-void Drawable::Draw(Graphics& gfx) const noexcept(!_DEBUG)
+void Drawable::Draw(Graphics& gfx) const noexcept(NDEBUG)
 {
 	for (auto& b : binds)
 	{
@@ -13,7 +13,7 @@ void Drawable::Draw(Graphics& gfx) const noexcept(!_DEBUG)
 	gfx.DrawIndexed(pIndexBuffer->GetCount());
 }
 
-void Drawable::AddBind(std::unique_ptr<Bindable> bind) noexcept(!_DEBUG)
+void Drawable::AddBind(std::unique_ptr<Bindable> bind) noexcept(NDEBUG)
 {
 	assert("*Must* use AddIndexBuffer to bind index buffer" && typeid(*bind) != typeid(IndexBuffer));
 	binds.push_back(std::move(bind));

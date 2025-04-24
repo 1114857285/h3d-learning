@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include "Window.h"
+#include "wantSee.h"
 #include "App.h"
 
 
@@ -11,6 +12,24 @@ int CALLBACK WinMain(
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
+#if 1
+    int res = MessageBox(NULL, "¥­¥å©`¥ÖÒŠ¤¿¤¤¤Ç¤¹¤«£¿", "ßx’k", MB_YESNO | MB_ICONQUESTION);
+    int res2 = 0;
+    switch (res)
+    {
+    case IDYES:
+        res2 = MessageBox(NULL, "É«¸¶¤­¤Þ¤¹¤«£¿", "ßx’k", MB_YESNO | MB_ICONQUESTION);
+        if(res2==IDYES)
+        break;
+        else
+        {
+            wantSee = 1;
+            break;
+        }
+    case IDNO:
+        return 0;
+    }
+#endif
     try {
         return App{}.Go();
     }
