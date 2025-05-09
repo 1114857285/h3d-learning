@@ -7,9 +7,15 @@
 #include <wrl.h>
 #include "DxgiInfoManager.h"
 #include "GraphicsThrowMacros.h"
+#include <stdexcept>
+#include <d3dcompiler.h>
+#include <DirectXMath.h>
+#include <memory>
+#include <random>
 
 class Graphics
 {
+	friend class Bindable;
 public:
 	class Exception :public MyException
 	{
@@ -54,9 +60,14 @@ public:
 	~Graphics()=default;
 	void EndFrame();
 	void ClearBuffer(float red, float green, float blue)noexcept;
-	void DrawTestTriangle(float angle,float x,float y);
 	void DrawIndexed(UINT count) noexcept(NDEBUG);
+	DirectX::XMMATRIX GetProjection() const noexcept;
+	void SetProjection(DirectX::FXMMATRIX proj) noexcept;
 private:
+	UINT width;
+	UINT height;
+	DirectX::XMMATRIX projection;
+	//DirectX::XMMATRIX camera;
 #ifndef NDEBUG
 	DxgiInfoManager infoManager;
 #endif

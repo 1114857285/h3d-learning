@@ -3,14 +3,14 @@
 #include "GraphicsThrowMacros.h"
 
 template<typename C>
-class ConstantBuffer:public Bindable
+class ConstantBuffer : public Bindable
 {
 public:
 	void Update(Graphics& gfx, const C& consts)
 	{
 		INFOMAN(gfx);
 
-		D3D11_MAPPED_SUBRESOURCE msr:
+		D3D11_MAPPED_SUBRESOURCE msr;
 		GFX_THROW_INFO(GetContext(gfx)->Map(
 			pConstantBuffer.Get(), 0u,
 			D3D11_MAP_WRITE_DISCARD, 0u,
@@ -28,7 +28,9 @@ public:
 		cbd.Usage = D3D11_USAGE_DYNAMIC;
 		cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		cbd.MiscFlags = 0u;
-		cbd.ByteWidth = sizeof(consts);
+		UINT byteWidth = static_cast<UINT>(sizeof(C));
+		byteWidth = (byteWidth + 15u) / 16u * 16u;
+		cbd.ByteWidth = byteWidth;
 		cbd.StructureByteStride = 0u;
 
 		D3D11_SUBRESOURCE_DATA csd = {};
@@ -48,15 +50,14 @@ public:
 		cbd.StructureByteStride = 0u;
 		GFX_THROW_INFO(GetDevice(gfx)->CreateBuffer(&cbd, nullptr, &pConstantBuffer));
 	}
-
 protected:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pConstantBuffer;
 };
 
 template<typename C>
-class VertexConstantBuffer :public ConstantBuffer<C>
+class VertexConstantBuffer : public ConstantBuffer<C>
 {
-	using ConstantBuffer::pConstantBuffer;
+	using ConstantBuffer<C>::pConstantBuffer;
 	using Bindable::GetContext;
 public:
 	using ConstantBuffer<C>::ConstantBuffer;
@@ -67,14 +68,14 @@ public:
 };
 
 template<typename C>
-class PixelConstantBuffer :public ConstantBuffer<C>
+class PixelConstantBuffer : public ConstantBuffer<C>
 {
-	using ConstantBuffer::pConstantBuffer;
+	using ConstantBuffer<C>::pConstantBuffer;
 	using Bindable::GetContext;
 public:
 	using ConstantBuffer<C>::ConstantBuffer;
 	void Bind(Graphics& gfx) noexcept override
 	{
-		GetContext(gfx)->PSSetConstantBuffers(0u,1u,pConstantBuffer.GetAddressOf())
+		GetContext(gfx)->PSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf());
 	}
 };

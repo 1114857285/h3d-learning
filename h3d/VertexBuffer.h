@@ -2,7 +2,7 @@
 #include "Bindable.h"
 #include "GraphicsThrowMacros.h"
 
-class  VertexBuffer:public Bindable
+class VertexBuffer : public Bindable
 {
 public:
 	template<class V>
@@ -23,11 +23,8 @@ public:
 		sd.pSysMem = vertices.data();
 		GFX_THROW_INFO(GetDevice(gfx)->CreateBuffer(&bd, &sd, &pVertexBuffer));
 	}
-	void Bind(Graphics& gfx)noexcept override;
-
+	void Bind(Graphics& gfx) noexcept override;
 protected:
 	UINT stride;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pVertexBuffer;
-
-
 };

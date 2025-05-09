@@ -84,6 +84,21 @@
     <ClCompile Include="wantSee.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Box.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformCbuf.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PixelShader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexShader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawableBase.h">
+      <Filter>头文件\Drawable</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.h">
@@ -141,10 +156,25 @@
       <Filter>头文件\Bindable</Filter>
     </ClInclude>
     <ClInclude Include="ConstantBuffers.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\Bindable</Filter>
+    </ClInclude>
+    <ClInclude Include="PixelShader.h">
+      <Filter>头文件\Bindable</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexShader.h">
+      <Filter>头文件\Bindable</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformCbuf.h">
+      <Filter>头文件\Bindable</Filter>
+    </ClInclude>
+    <ClInclude Include="BindableBase.h">
+      <Filter>头文件\Bindable</Filter>
     </ClInclude>
     <ClInclude Include="Drawable.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\Drawable</Filter>
+    </ClInclude>
+    <ClInclude Include="Box.h">
+      <Filter>头文件\Drawable</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

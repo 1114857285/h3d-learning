@@ -2,16 +2,19 @@
 
 ID3D11DeviceContext* Bindable::GetContext(Graphics& gfx) noexcept
 {
-    return nullptr;
+    return gfx.pContext.Get();
 }
 
 ID3D11Device* Bindable::GetDevice(Graphics& gfx) noexcept
 {
-    return nullptr;
+    return gfx.pDevice.Get();
 }
 
 DxgiInfoManager& Bindable::GetInfoManager(Graphics& gfx) noexcept(NDEBUG)
 {
-    static DxgiInfoManager dummy;  // 静态变量，程序生命周期内只初始化一次
-    return dummy;
+#ifndef NDEBUG
+    return gfx.infoManager;
+#else
+    throw std::logic_error("(tried to access gfx.infoManager in Release config)");
+#endif
 }

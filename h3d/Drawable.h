@@ -2,6 +2,7 @@
 #include "Graphics.h"
 #include <DirectXMath.h>
 #include <memory>
+#include <random>
 
 class Bindable;
 

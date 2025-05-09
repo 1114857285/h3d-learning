@@ -113,6 +113,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ManifestFile>$(ProjectDir)h3d.manifest</ManifestFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -134,12 +135,18 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ManifestFile>$(ProjectDir)h3d.manifest</ManifestFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Bindable.cpp" />
+    <ClCompile Include="Box.cpp" />
     <ClCompile Include="Drawable.cpp" />
+    <ClCompile Include="DrawableBase.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="DxgiInfoManager.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
@@ -149,8 +156,11 @@
     <ClCompile Include="MyException.cpp" />
     <ClCompile Include="MyTimer.cpp" />
     <ClCompile Include="Ndxerr.cpp" />
+    <ClCompile Include="PixelShader.cpp" />
     <ClCompile Include="Topology.cpp" />
+    <ClCompile Include="TransformCbuf.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
+    <ClCompile Include="VertexShader.cpp" />
     <ClCompile Include="wantSee.cpp" />
     <ClCompile Include="wantSee.h" />
     <ClCompile Include="Window.cpp">
@@ -163,6 +173,8 @@
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="Bindable.h" />
+    <ClInclude Include="BindableBase.h" />
+    <ClInclude Include="Box.h" />
     <ClInclude Include="ConstantBuffers.h" />
     <ClInclude Include="Drawable.h" />
     <ClInclude Include="DxgiInfoManager.h" />
@@ -176,9 +188,12 @@
     <ClInclude Include="MyTimer.h" />
     <ClInclude Include="MyWin.h" />
     <ClInclude Include="Ndxerr.h" />
+    <ClInclude Include="PixelShader.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Topology.h" />
+    <ClInclude Include="TransformCbuf.h" />
     <ClInclude Include="VertexBuffer.h" />
+    <ClInclude Include="VertexShader.h" />
     <ClInclude Include="Window.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

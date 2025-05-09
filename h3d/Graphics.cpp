@@ -99,6 +99,16 @@ Graphics::Graphics(HWND hWnd)
 
 	//bind depth stensil view to OM
 	pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), pDSV.Get());
+
+	// configure viewport
+	D3D11_VIEWPORT vp;
+	vp.Width = 800.0f;
+	vp.Height = 600.0f;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0.0f;
+	vp.TopLeftY = 0.0f;
+	pContext->RSSetViewports(1u, &vp);
 }
 
 
@@ -130,246 +140,20 @@ void Graphics::ClearBuffer(float red, float green, float blue) noexcept
 	pContext->ClearDepthStencilView(pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 }
 
-void Graphics::DrawTestTriangle(float angle,float x,float y)
-{
-	namespace wrl = Microsoft::WRL;
-
-	//dx::XMVECTOR v = dx::XMVectorSet(3.0f, 3.0f, 0.0f, 0.0f);
-	//auto result = dx::XMVector3Transform(v, dx::XMMatrixScaling(1.5f, 0.0f, 0.0f));
-	//auto x = dx::XMVectorGetX(result);
-
-	HRESULT hr;
-	struct  Vertex
-	{
-		struct 
-		{
-			float x;
-			float y;
-			float z;
-		}pos;
-
-	};
-
-	Vertex vertices[] =
-	{
-		{-1.0f,-1.0f,-1.0f},
-		{1.0f,-1.0f,-1.0f},
-		{-1.0f,1.0f,-1.0f},
-		{1.0f,1.0f,-1.0f},
-		{-1.0f,-1.0f,1.0f},
-		{1.0f,-1.0f,1.0f},
-		{-1.0f,1.0f,1.0f},
-		{1.0f,1.0f,1.0f},
-	};
-	wrl::ComPtr<ID3D11Buffer> pVertexBuffer;
-	D3D11_BUFFER_DESC bd = {};
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.CPUAccessFlags = 0u;
-	bd.MiscFlags = 0u;
-	bd.ByteWidth = sizeof(vertices);
-	bd.StructureByteStride = sizeof(Vertex);
-	D3D11_SUBRESOURCE_DATA sd = {};
-	sd.pSysMem = vertices;
-	GFX_THROW_INFO(pDevice->CreateBuffer(&bd, &sd, &pVertexBuffer));
-
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0u;
-	pContext->IASetVertexBuffers(0u,1u,pVertexBuffer.GetAddressOf(), &stride, &offset);
-
-	const unsigned short indices[] =
-	{
-		0,2,1, 2,3,1,
-		1,3,5, 3,7,5,
-		2,6,3, 3,6,7,
-		4,5,7, 4,7,6,
-		0,4,2, 2,4,6,
-		0,1,4, 1,5,4
-	};	
-	wrl::ComPtr<ID3D11Buffer> pIndexBuffer;
-	D3D11_BUFFER_DESC ibd = {};
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ibd.Usage = D3D11_USAGE_DEFAULT;
-	ibd.CPUAccessFlags = 0u;
-	ibd.MiscFlags = 0u;
-	ibd.ByteWidth = sizeof(indices);
-	ibd.StructureByteStride = sizeof(unsigned short);
-	D3D11_SUBRESOURCE_DATA isd = {};
-	isd.pSysMem = indices;
-	GFX_THROW_INFO(pDevice->CreateBuffer(&ibd, &isd, &pIndexBuffer));
-
-
-	pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u);
-#if 1
-
-
-	if (wantSee)
-	{
-		const unsigned short edges[] = {
-	0,1, 1,3, 3,2, 2,0, // 前面
-	4,5, 5,7, 7,6, 6,4, // 后面
-	0,4, 1,5, 2,6, 3,7  // 连接线
-		};
-
-		// 创建线框索引缓冲区
-		wrl::ComPtr<ID3D11Buffer> pEdgeIndexBuffer;
-		D3D11_BUFFER_DESC eibd = {};
-		eibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-		eibd.Usage = D3D11_USAGE_DEFAULT;
-		eibd.ByteWidth = sizeof(edges); // edges是你的边索引数组
-		eibd.StructureByteStride = sizeof(unsigned short);
-
-		D3D11_SUBRESOURCE_DATA eisd = {};
-		eisd.pSysMem = edges;
-
-		GFX_THROW_INFO(pDevice->CreateBuffer(&eibd, &eisd, &pEdgeIndexBuffer));
-		// 创建线框光栅化状态（在初始化时完成）
-		wrl::ComPtr<ID3D11RasterizerState> pWireframeRS;
-		D3D11_RASTERIZER_DESC wfDesc = {};
-		wfDesc.FillMode = D3D11_FILL_WIREFRAME; // 关键设置！
-		wfDesc.CullMode = D3D11_CULL_NONE;
-		wfDesc.DepthClipEnable = true;
-
-		GFX_THROW_INFO(pDevice->CreateRasterizerState(&wfDesc, &pWireframeRS));
-
-		// 绘制前绑定状态
-		pContext->RSSetState(pWireframeRS.Get());
-
-		// 使用DrawIndexed绘制线段
-		pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST); // 关键！
-		pContext->DrawIndexed((UINT)std::size(edges), 0, 0);
- }
-	
-#endif // wantseebox
-
-	
-
-	//const buffer
-	struct  ConstantBuffer
-	{
-		dx::XMMATRIX transformation;
-		/*
-		struct
-		{
-			float element[4][4];
-		}transformation;*/
-	};
-	const ConstantBuffer cb =
-	{
-		{
-			dx::XMMatrixTranspose(
-				dx::XMMatrixRotationZ(angle)*
-				dx::XMMatrixRotationX(angle)*
-				dx::XMMatrixTranslation(x,y,4.0f)*
-				dx::XMMatrixPerspectiveFovLH(1.0f,3.0f/4.0f,0.5f,10.0f)
-			)
-			/*
-			(3.0f/4.0f)*std::cos(angle),std::sin(angle), 0.0f,	0.0f,
-			(3.0f / 4.0f) * -std::sin(angle),std::cos(angle),0.0f,	0.0f,
-			0.0f, 0.0f,						 1.0f,	0.0f,
-			0.0f,0.0f,						 0.0f,  1.0f
-			*/
-		}
-	};
-	wrl::ComPtr<ID3D11Buffer> pConstantBuffer;
-	D3D11_BUFFER_DESC cbd = {};
-	cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cbd.Usage = D3D11_USAGE_DYNAMIC;
-	cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	cbd.MiscFlags = 0u;
-	cbd.ByteWidth = sizeof(cb);
-	cbd.StructureByteStride = 0u;
-	D3D11_SUBRESOURCE_DATA csd = {};
-	csd.pSysMem = &cb;
-	GFX_THROW_INFO(pDevice->CreateBuffer(&cbd, &csd, &pConstantBuffer));
-
-	//
-	pContext->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf());
-
-	struct  ConstantBuffer2
-	{
-		struct MyStruct
-		{
-			float r;
-			float g;
-			float b;
-			float a;
-		}face_colors[6];
-	};
-	const ConstantBuffer2 cb2 =
-	{
-		{
-			{1.0f,0.0f,1.0f},
-			{1.0f,0.0f,0.0f},
-			{0.0f,1.0f,0.0f},
-			{0.0f,0.0f,1.0f},
-			{1.0f,1.0f,0.0f},
-			{0.0f,1.0f,1.0f},
-		}
-	};
-	wrl::ComPtr<ID3D11Buffer> pConstantBuffer2;
-	D3D11_BUFFER_DESC cbd2;
-	cbd2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cbd2.Usage = D3D11_USAGE_DEFAULT;
-	cbd2.CPUAccessFlags = 0u;
-	cbd2.MiscFlags = 0u;
-	cbd2.ByteWidth = sizeof(cb2);
-	cbd2.StructureByteStride = 0u;
-	D3D11_SUBRESOURCE_DATA csd2 = {};
-	csd2.pSysMem = &cb2;
-	GFX_THROW_INFO(pDevice->CreateBuffer(&cbd2, &csd2, &pConstantBuffer2));
-
-	pContext->PSSetConstantBuffers(0u, 1u, pConstantBuffer2.GetAddressOf());
-
-	//
-	wrl::ComPtr<ID3D11PixelShader> pPixelShader;
-	wrl::ComPtr<ID3DBlob> pBlob;
-	GFX_THROW_INFO(D3DReadFileToBlob(L"PixelShader.cso", &pBlob));
-	GFX_THROW_INFO(pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader));
-
-	pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
-
-	wrl::ComPtr<ID3D11VertexShader> pVertexShader;
-
-	GFX_THROW_INFO(D3DReadFileToBlob(L"VertexShader.cso", &pBlob));
-	GFX_THROW_INFO(pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader));
-//
-	pContext->VSSetShader(pVertexShader.Get(), nullptr, 0u);
-	//
-	wrl::ComPtr<ID3D11InputLayout> pInputLayout;
-	const D3D11_INPUT_ELEMENT_DESC ied[] =
-	{
-		{"Position",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0},
-		//{"Color",0,DXGI_FORMAT_R8G8B8A8_UNORM,0,12u,D3D11_INPUT_PER_VERTEX_DATA,0},
-	};
-	GFX_THROW_INFO(pDevice->CreateInputLayout(
-		ied, (UINT)std::size(ied),
-		pBlob->GetBufferPointer(),
-		pBlob->GetBufferSize(),
-		&pInputLayout
-	));
-
-	pContext->IASetInputLayout(pInputLayout.Get());
-
-	//pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), nullptr);
-
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	D3D11_VIEWPORT vp;
-	vp.Width = 800;
-	vp.Height = 600;
-	vp.MinDepth = 0;
-	vp.MaxDepth = 1;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-	pContext->RSSetViewports(1u, &vp);
-
-	GFX_THROW_INFO_ONLY(pContext->DrawIndexed((UINT)std::size(indices),0, 0u));
-}
 
 void Graphics::DrawIndexed(UINT count) noexcept(NDEBUG)
 {
 	GFX_THROW_INFO_ONLY(pContext->DrawIndexed(count, 0u, 0u));
+}
+
+DirectX::XMMATRIX Graphics::GetProjection() const noexcept
+{
+	return projection;
+}
+
+void Graphics::SetProjection(DirectX::FXMMATRIX proj) noexcept
+{
+		projection = proj;
 }
 
 Graphics::HrException::HrException(int line, const char* file, HRESULT hr,std::vector<std::string> infoMsgs) noexcept

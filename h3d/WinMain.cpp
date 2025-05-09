@@ -12,7 +12,9 @@ int CALLBACK WinMain(
 	LPSTR lpCmdLine,
 	int nCmdShow)
 {
-#if 1
+
+
+#if 0
     int res = MessageBox(NULL, "¥­¥å©`¥ÖÒŠ¤¿¤¤¤Ç¤¹¤«£¿", "ßx’k", MB_YESNO | MB_ICONQUESTION);
     int res2 = 0;
     switch (res)

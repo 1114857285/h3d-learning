@@ -9,9 +9,11 @@ public:
 	App();
 	//master frame/message logo
 	int Go();
+	~App();
 private:
 	void DoFrame();
 private:
 	Window wnd;
 	MyTimer timer;
+	std::vector<std::unique_ptr<class Box>> boxes;
 };

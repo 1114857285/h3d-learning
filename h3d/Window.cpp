@@ -41,7 +41,9 @@ Window::Window(int width, int height, const char* name)noexcept
 	:
 	width(width),
 	height(height)
+
 {
+
 	//calculate window size based on desired client region size
 	RECT wr;
 	wr.left = 100;
@@ -68,6 +70,8 @@ Window::Window(int width, int height, const char* name)noexcept
 	//show window
 	ShowWindow(hWnd, SW_SHOWDEFAULT);
 	pGfx = std::make_unique<Graphics>(hWnd);
+
+
 }
 
 Window::~Window()
@@ -140,6 +144,7 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 {
 	switch (msg)
 	{
+
 		// we don't want the DefProc to handle this message because
 		// we want our destructor to destroy the window, so return 0 instead of break
 	case WM_CLOSE:
@@ -149,6 +154,7 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 	case WM_KILLFOCUS:
 		kbd.ClearState();
 		break;
+
 //************************KEYBOARD MESSAGE*******************//
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
