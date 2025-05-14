@@ -99,6 +99,12 @@
     <ClCompile Include="DrawableBase.h">
       <Filter>头文件\Drawable</Filter>
     </ClCompile>
+    <ClCompile Include="Melon.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Pyramid.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.h">
@@ -197,6 +203,12 @@
     <ClInclude Include="Prism.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Melon.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Pyramid.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="h3d.rc">
@@ -209,10 +221,16 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="VertexShader.hlsl">
+    <FxCompile Include="ColorIndexVS.hlsl">
       <Filter>头文件\Shader</Filter>
     </FxCompile>
-    <FxCompile Include="PixelShader.hlsl">
+    <FxCompile Include="ColorIndexPS.hlsl">
+      <Filter>头文件\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="ColorBlendPS.hlsl">
+      <Filter>头文件\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="ColorBlendVS.hlsl">
       <Filter>头文件\Shader</Filter>
     </FxCompile>
   </ItemGroup>

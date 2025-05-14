@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Window.h"
 #include "MyTimer.h"
 
@@ -15,5 +16,6 @@ private:
 private:
 	Window wnd;
 	MyTimer timer;
-	std::vector<std::unique_ptr<class Box>> boxes;
+	std::vector<std::unique_ptr<class Drawable>> drawables;
+	static constexpr size_t nDrawables = 180;
 };
